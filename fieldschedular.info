@@ -1,0 +1,5 @@
+name = Field Schedular
+description = Field Schedular allows to enable/disable the field for given datetime.
+core = 7.x
+
+dependencies[] = field
