@@ -9,16 +9,16 @@
  * Implements hook_form_FORM_ID_alter().
  */
 function fieldschedular_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id) {
-  $settings = isset($form['#instance']['settings']) ? $form['#instance']['settings'] : array();
+  $settings = isset($form['#field']['settings']) ? $form['#field']['settings'] : array();
 
-  $form['instance']['settings']['fieldschedular_view'] = array(
+  $form['field']['settings']['fieldschedular_view'] = array(
     '#type' => 'checkbox',
     '#title' => t('Schedule display'),
     '#default_value' => isset($settings['fieldschedular_view']) ? $settings['fieldschedular_view'] : NULL,
     '#weight' => 20,
   );
 
-  $form['instance']['settings']['fieldschedular_view_dates'] = array(
+  $form['field']['settings']['fieldschedular_view_dates'] = array(
     '#type' => 'fieldset',
     '#title' => t('Schedule display dates'),
     '#description' => t("If field is hidden through 'Manage Display', these settings will have no effect!"),
@@ -30,26 +30,26 @@ function fieldschedular_form_field_ui_field_edit_form_alter(&$form, &$form_state
     '#weight' => 21,
   );
 
-  $form['instance']['settings']['fieldschedular_view_dates']['start'] = array(
+  $form['field']['settings']['fieldschedular_view_dates']['start'] = array(
     '#type' => 'date',
     '#title' => t('Start Date'),
     '#default_value' => isset($settings['fieldschedular_view_dates']['start']) ? $settings['fieldschedular_view_dates']['start'] : NULL,
   );
 
-  $form['instance']['settings']['fieldschedular_view_dates']['end'] = array(
+  $form['field']['settings']['fieldschedular_view_dates']['end'] = array(
     '#type' => 'date',
     '#title' => t('Expiry Date'),
     '#default_value' => isset($settings['fieldschedular_view_dates']['end']) ? $settings['fieldschedular_view_dates']['end'] : NULL,
   );
 
-  $form['instance']['settings']['fieldschedular_edit'] = array(
+  $form['field']['settings']['fieldschedular_edit'] = array(
     '#type' => 'checkbox',
     '#title' => t('Schedule Add/Edit'),
     '#default_value' => isset($settings['fieldschedular_edit']) ? $settings['fieldschedular_edit'] : NULL,
     '#weight' => 22,
   );
 
-  $form['instance']['settings']['fieldschedular_edit_dates'] = array(
+  $form['field']['settings']['fieldschedular_edit_dates'] = array(
     '#type' => 'fieldset',
     '#title' => t('Schedule edit/add dates'),
     '#description' => t("Note that expired field will not be rendered even if field is required!"),
@@ -61,13 +61,13 @@ function fieldschedular_form_field_ui_field_edit_form_alter(&$form, &$form_state
     '#weight' => 23,
   );
 
-  $form['instance']['settings']['fieldschedular_edit_dates']['start'] = array(
+  $form['field']['settings']['fieldschedular_edit_dates']['start'] = array(
     '#type' => 'date',
     '#title' => t('Start Date'),
     '#default_value' => isset($settings['fieldschedular_edit_dates']['start']) ? $settings['fieldschedular_edit_dates']['start'] : NULL,
   );
 
-  $form['instance']['settings']['fieldschedular_edit_dates']['end'] = array(
+  $form['field']['settings']['fieldschedular_edit_dates']['end'] = array(
     '#type' => 'date',
     '#title' => t('Expiry Date'),
     '#default_value' => isset($settings['fieldschedular_edit_dates']['end']) ? $settings['fieldschedular_edit_dates']['end'] : NULL,
@@ -75,65 +75,51 @@ function fieldschedular_form_field_ui_field_edit_form_alter(&$form, &$form_state
 }
 
 /**
- * Implements hook_field_display_alter().
+ * Implements hook_field_access().
  */
-function fieldschedular_field_display_alter(&$display, $context) {
-  if (_fieldschedular_field_is_expired($context, 'view')) {
-    foreach ($context['instance']['display'] as $display) {
-      $display['type'] = 'hidden';
-    }
+function fieldschedular_field_access($op, $field, $entity_type, $entity, $account) {
+  if (_fieldschedular_field_is_expired($field, $op)) {
+    return FALSE;
   }
-}
-
-/**
- * Implements hook_field_widget_form_alter().
- */
-function fieldschedular_field_widget_form_alter(&$element, &$form_state, $context) {
-  if (_fieldschedular_field_is_expired($context, 'edit')) {
-    $element['#required'] = FALSE;
-    if (!empty($element['value'])) {
-      $element['value']['#required'] = FALSE;
-    }
-    hide($element);
-  }
+  return TRUE;
 }
 
 /**
  * Helper function to check field expiry.
  */
-function _fieldschedular_field_is_expired($context, $mode = 'view') {
-  if (!isset($context['instance']) || !isset($context['instance']['settings'])) {
+function _fieldschedular_field_is_expired($field, $mode = 'view') {
+  if (!isset($field['settings'])) {
     return FALSE;
   }
-  $instance_settings = $context['instance']['settings'];
+  $settings = $field['settings'];
 
   if ($mode == 'view') {
     // For field view mode.
-    if (empty($instance_settings['fieldschedular_view'])) {
+    if (empty($settings['fieldschedular_view'])) {
       return FALSE;
     }
 
     // Check for start date.
-    if (!empty($instance_settings['fieldschedular_view_dates']['start']) && _fieldschedular_campare_date($instance_settings['fieldschedular_view_dates']['start'])) {
+    if (!empty($settings['fieldschedular_view_dates']['start']) && _fieldschedular_campare_date($settings['fieldschedular_view_dates']['start'])) {
       return TRUE;
     }
     // Check for end date.
-    if (!empty($instance_settings['fieldschedular_view_dates']['end']) && _fieldschedular_campare_date($instance_settings['fieldschedular_view_dates']['end'], 'end')) {
+    if (!empty($settings['fieldschedular_view_dates']['end']) && _fieldschedular_campare_date($settings['fieldschedular_view_dates']['end'], 'end')) {
       return TRUE;
     }
   }
   elseif ($mode == 'edit') {
     // For field add/edit mode.
-    if (empty($instance_settings['fieldschedular_edit'])) {
+    if (empty($settings['fieldschedular_edit'])) {
       return FALSE;
     }
 
     // Check for start date.
-    if (!empty($instance_settings['fieldschedular_edit_dates']['start']) && _fieldschedular_campare_date($instance_settings['fieldschedular_edit_dates']['start'])) {
+    if (!empty($settings['fieldschedular_edit_dates']['start']) && _fieldschedular_campare_date($settings['fieldschedular_edit_dates']['start'])) {
       return TRUE;
     }
     // Check for end date.
-    if (!empty($instance_settings['fieldschedular_edit_dates']['end']) && _fieldschedular_campare_date($instance_settings['fieldschedular_edit_dates']['end'], 'end')) {
+    if (!empty($settings['fieldschedular_edit_dates']['end']) && _fieldschedular_campare_date($settings['fieldschedular_edit_dates']['end'], 'end')) {
       return TRUE;
     }
   }
