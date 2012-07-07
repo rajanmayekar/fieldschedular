@@ -24,7 +24,7 @@ function fieldschedular_form_field_ui_field_edit_form_alter(&$form, &$form_state
     '#description' => t("If field is hidden through 'Manage Display', these settings will have no effect!"),
     '#states' => array(
       'visible' => array(
-        '#edit-instance-settings-fieldschedular-view' => array('checked' => TRUE),
+        '#edit-field-settings-fieldschedular-view' => array('checked' => TRUE),
       ),
     ),
     '#weight' => 21,
@@ -55,7 +55,7 @@ function fieldschedular_form_field_ui_field_edit_form_alter(&$form, &$form_state
     '#description' => t("Note that expired field will not be rendered even if field is required!"),
     '#states' => array(
       'visible' => array(
-        '#edit-instance-settings-fieldschedular-edit' => array('checked' => TRUE),
+        '#edit-field-settings-fieldschedular-edit' => array('checked' => TRUE),
       ),
     ),
     '#weight' => 23,
