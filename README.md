@@ -5,3 +5,7 @@ the provided schduled dates.
 Field visibility affects view as well as create/edit modes
 according to the provided settings in the 'manage field' form of
 that field.
+
+@MOVED
+This porject has  been moved to
+https://www.drupal.org/project/fieldscheduler
